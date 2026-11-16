@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Status** | Draft 0.3, for review |
+| **Status** | Draft 0.4, for review |
 | **Date** | 16 November 2026 |
 | **Jurisdiction** | United Kingdom — HMRC Corporation Tax and Companies House |
-| **Changes since 0.2** | Three decisions recorded: the director release comes first; large organisations report under IFRS or FRS; large-company accounts are imported and tagged, with a designed path to drafting them in the app later (section 10.5). |
+| **Changes since 0.3** | Two decisions recorded: large customers are groups with many UK companies, and consolidated accounts are supported in release 2. Group-scale working, consolidated tagging and Companies House package accounts are added to release 2. |
 
 ## 1. Summary
 
@@ -19,7 +19,7 @@ The app takes a UK company from a year-end trial balance to accounts filed at Co
 6. obtains approval; and
 7. files with Companies House and HMRC, tracking each filing to acceptance.
 
-It serves two kinds of user: directors filing for their own small company, and the in-house finance and tax teams of large UK organisations filing for one company or a group.
+It serves two kinds of user: directors filing for their own small company, and the in-house finance and tax teams of large UK groups filing for many companies, including the parent's consolidated accounts.
 
 Accounts reach iXBRL by one of two routes, and the difference matters throughout the specification:
 
@@ -38,12 +38,14 @@ Accounts reach iXBRL by one of two routes, and the difference matters throughout
 | D4 | **The director release comes first**, then the large-organisation release. It is the smallest complete filing loop and is what HMRC recognition is obtained on. |
 | D5 | **Large organisations report under IFRS or FRS**: UK-adopted IFRS, FRS 101 or FRS 102. All three are supported in release 2. |
 | D6 | **Large-company accounts are imported and tagged**, not drafted in the app. The design must allow drafting to be added later without rework (section 10.5). |
+| D7 | **Large customers are groups with many UK companies.** Working across the whole group — bulk operations, shared mappings, tags reused between companies, a group dashboard — is core to release 2. |
+| D8 | **Consolidated accounts are supported in release 2**: a parent's accounts that include group statements can be tagged and filed. This draft assumes the app does not perform the consolidation; the consolidated figures come from the group's own consolidation system (section 4.5). |
 
 ### 2.2 Assumptions to confirm
 
 | # | Assumption |
 |---|---|
-| A1 | **"Large UK organisation"** means a UK company, or a UK group of companies, that does not qualify for the small companies regime: medium-sized or large under the Companies Act, usually audited, usually with an in-house finance team, often with several UK subsidiaries. |
+| A1 | **"Large UK organisation"** means a UK group that is medium-sized or large under the Companies Act: audited, with an in-house finance team and typically tens of UK companies. A standalone large company is the simple case of the same thing. |
 | A2 | **"Directors"** means directors of micro-entities and small companies who file for their own company without an accountant. |
 | A3 | **Small-company accounts are generated**, in release 3, in the same way as micro-entity accounts in release 1. Any company may instead use the import route once it exists. |
 | A4 | **Users file as the company, not as an agent.** A director or an employee files with the company's own HMRC and Companies House credentials. Filing as a tax agent is deferred. |
@@ -66,6 +68,7 @@ Positions below are as understood on 16 November 2026. They were compiled from s
 | Companies House presenter rules | Compulsory identity verification for anyone filing, and the requirement that third-party agents be registered as Authorised Corporate Service Providers, are now due no earlier than November 2027, with at least six months' notice. | Each customer files under its own presenter credentials (FR-CH-4) so the product owner is a software supplier, not a filing agent. |
 | Accounting standards | FRS 102 Periodic Review 2024 amendments (five-step revenue model, on-balance-sheet leases) apply to periods beginning on or after 1 January 2026. FRS 105 was amended for revenue but keeps operating leases off balance sheet. | Templates, policies and reporting codes are versioned by period start date. |
 | IFRS and FRS 101 | The FRC taxonomy suite has entry points for UK-adopted IFRS and for FRS 101 as well as FRS 102. IFRS 18 changes the presentation of the income statement for periods beginning on or after 1 January 2027, and related UK amendments take effect from the same date; the FRC 2027 suite is expected to cover them. | Release 2 must handle both the current and the IFRS 18 presentation, selected by period start date. |
+| Group accounts | A parent of a medium-sized or large group prepares consolidated accounts unless exempt, under UK-adopted IFRS or FRS 102; FRS 101 is for individual accounts only. Companies House has "package" filings in which a subsidiary relying on a group exemption, such as audit exemption by parent guarantee, delivers its parent's consolidated accounts with its own. A dated vendor source says HMRC requires only the parent's individual accounts in iXBRL and accepts the group accounts as a PDF. | Consolidated statements must be tagged for Companies House once iXBRL is mandatory in April 2028. What HMRC requires of a parent, and how packages are sent by software, must be confirmed in phase 0. |
 | Company size thresholds | For periods beginning on or after 6 April 2025 (two of three, with the two-consecutive-years rule): micro — turnover ≤ £1m, balance sheet total ≤ £500k, employees ≤ 10; small — ≤ £15m, ≤ £7.5m, ≤ 50; medium — ≤ £54m, ≤ £27m, ≤ 250. Larger companies are large. | Drives the size assessment (FR-PER-5) and which route and release serve a company. |
 | Quarterly instalment payments | A company whose augmented profits exceed £1.5m pays Corporation Tax in quarterly instalments, and one above £20m pays earlier; both limits are divided by the number of associated companies plus one. There are exceptions for a company's first large period. | Out of scope for release 1; required in release 2 (FR-TAX-14). |
 | Capital allowances | From 1 January 2026 a new 40% first-year allowance for main-rate expenditure. From 1 April 2026 the main-pool writing-down allowance falls from 18% to 14%, with a hybrid rate for periods straddling that date. | Effective-dated rate tables (section 14). |
@@ -86,12 +89,12 @@ Positions below are as understood on 16 November 2026. They were compiled from s
 
 ### 4.2 Release 2 — large organisations
 
-- Group tenants: many companies, ownership relationships, entity-level permissions, single sign-on, and a group filing dashboard.
+- Group tenants built for many companies: ownership relationships, entity-level permissions, single sign-on, bulk operations across companies, and a group dashboard.
 - Trial balances at ERP scale; lead schedules and working papers; intercompany balance agreement.
-- Imported accounts with the tagging workbench, for individual company accounts under full FRS 102, FRS 101 or UK-adopted IFRS, audited or unaudited.
+- Imported accounts with the tagging workbench: individual company accounts under FRS 102, FRS 101 or UK-adopted IFRS, and a parent's accounts that include consolidated group statements under FRS 102 or UK-adopted IFRS. Tags are reused across companies whose accounts share a template.
 - Large-company tax: associated companies, quarterly instalments, group relief with CT600C, the restriction on carried-forward losses, investment and holding companies, and the wider set of income and loss types in section 7.7.
 - A detailed profit and loss account generated from the trial balance and attached to the computations.
-- Companies House filing of full accounts.
+- Companies House filing of full accounts, group accounts, and the packages in which a subsidiary files its parent's consolidated accounts with its own.
 
 ### 4.3 Release 3 — small companies
 
@@ -100,7 +103,6 @@ Positions below are as understood on 16 November 2026. They were compiled from s
 
 ### 4.4 Later, by demand
 
-- Consolidated accounts: tagging the group statements of a parent that prepares them.
 - Drafting large-company accounts in the app under FRS 102, FRS 101 and IFRS, in the stages set out in section 10.5.
 - R&D claims and further CT600 supplementary pages.
 - Filing as an agent, and practice features.
@@ -111,16 +113,14 @@ Positions below are as understood on 16 November 2026. They were compiled from s
 ### 4.5 Out of scope
 
 - Bookkeeping, bank feeds, VAT, payroll and self-assessment.
-- Consolidation itself (producing group figures from subsidiaries).
-- The Financial Conduct Authority's structured reporting for listed companies' annual financial reports, which applies to consolidated accounts and uses a different taxonomy.
+- Consolidation itself: producing group figures from the companies' ledgers, with eliminations and currency translation. The app takes the consolidated trial balance from the group's consolidation system and ties the tagged group statements to it.
+- The Financial Conduct Authority's structured reporting for listed companies' annual financial reports, which is a separate filing with its own taxonomy. Consolidated accounts tagged in the app are for Companies House and HMRC.
 - Sector and special regimes: banking, insurance, oil and gas ring-fence trades, tonnage tax, real estate investment trusts, residential property developer tax, creative industry reliefs.
 - International regimes: controlled foreign companies, the multinational top-up tax, diverted profits tax, non-UK-resident companies, double taxation relief.
-- The corporate interest restriction return and the group allowance allocation statement, which are filed separately; the app takes their results as inputs.
+- Filing the corporate interest restriction return and the group allowance allocation statement, which go to HMRC separately. The app takes the interest restriction results as inputs and produces the allocation figures for the statement (FR-TAX-13).
 - Tax advice. The app computes from the user's inputs and flags common issues; the company remains responsible for its return.
 
 The app must detect circumstances it does not support and stop the user with a clear explanation rather than produce an incomplete return (FR-CT-6).
-
-One consequence of leaving consolidated accounts to later: in release 2 a group can file for every UK company that prepares individual accounts only, which is most subsidiaries and intermediate holding companies, but not for a parent whose accounts document includes group statements.
 
 ## 5. Users and roles
 
@@ -174,7 +174,7 @@ stateDiagram-v2
     Filed --> [*]
 ```
 
-Leaving Draft requires every blocking validation to pass. Approval binds to a hash of the pack (section 7.11), so any later change invalidates it. Companies House filing needs an approved accounts pack. HMRC filing needs an approved accounts pack and an approved tax return pack. Each filing has its own state (section 8.5), and the two can happen in either order; Companies House usually comes first because its deadline is earlier. A filed pack is immutable; a correction is made by creating an amended version, which starts a new cycle.
+Leaving Draft requires every blocking validation to pass. Approval binds to a hash of the pack (section 7.11), so any later change invalidates it. Companies House filing needs an approved accounts pack. HMRC filing needs an approved accounts pack and an approved tax return pack. A subsidiary that files a package with Companies House (FR-CH-10) also needs its parent's approved consolidated accounts. Each filing has its own state (section 8.5), and the two can happen in either order; Companies House usually comes first because its deadline is earlier. A filed pack is immutable; a correction is made by creating an amended version, which starts a new cycle.
 
 ## 7. Functional requirements
 
@@ -185,7 +185,7 @@ Each requirement is tagged with the release that delivers it: **R1**, **R2**, **
 - **FR-ORG-1 (R1)** A tenant holds one company. **(R2)** A tenant may hold a group of companies.
 - **FR-ORG-2 (R1)** A company record holds: registered name, company registration number (CRN), Corporation Tax Unique Taxpayer Reference (UTR), registered office, incorporation date, company type, principal activity, SIC codes, directors, share capital, accounting reference date and trading status.
 - **FR-ORG-3 (R1)** Validate the CRN format and the UTR format and check digit on entry.
-- **FR-ORG-4 (R2)** Record ownership relationships between companies, with percentages and dates, including companies outside the tenant. From these, propose for each accounting period the number of associated companies and which companies can exchange group relief, for the user to confirm.
+- **FR-ORG-4 (R2)** Record ownership relationships between companies, with percentages and dates, including companies outside the tenant. From these, propose for each accounting period the number of associated companies and which companies can exchange group relief, for the user to confirm. Import the structure from a file, and record changes during the year, such as acquisitions and disposals, with their dates.
 - **FR-ORG-5 (R2)** Single sign-on through SAML 2.0 or OpenID Connect, with roles as in section 5.2 assignable per company.
 - **FR-ORG-6 (R3)** Prefill the company record from the Companies House public data API using the CRN.
 
@@ -199,6 +199,7 @@ Two terms are used precisely. A **period of account** is the period the accounts
 - **FR-PER-4 (R1)** Calculate and display deadlines: Companies House filing, Corporation Tax payment and CT600 filing. **(R2)** Include quarterly instalment dates.
 - **FR-PER-5 (R1)** Assess company size against the thresholds for this year and the previous year, apply the two-consecutive-years rule and the statutory exclusions, and present the result for the user to confirm. **(R2)** Extend the assessment to medium and large companies and to group-level tests, and determine whether an audit is required or an exemption applies.
 - **FR-PER-6 (R1)** Roll a completed period forward: closing balances become comparatives, and mappings, the fixed asset register, capital allowance pools and tax losses carry over. **(R2)** Tags on imported accounts also carry over (FR-TAG-9).
+- **FR-PER-7 (R2)** Create and roll forward periods for many companies at once, and show which companies' year ends differ from the group's.
 
 ### 7.3 Trial balance import and mapping
 
@@ -209,6 +210,7 @@ Two terms are used precisely. A **period of account** is the period the accounts
 - **FR-TB-5 (R2)** Handle ERP-scale data: trial balances of up to 50,000 lines, extra analysis columns such as cost centre, and one file containing several companies.
 - **FR-TB-6 (R2)** Define mapping rules once for a group chart of accounts and apply them to every company, with per-company exceptions. Suggest mappings from the prior period and from account names and code ranges.
 - **FR-TB-7 (R3)** Pull the trial balance from bookkeeping systems over their APIs. **(Later)** ERP connectors.
+- **FR-TB-8 (R2)** Import a consolidated trial balance for a parent's group from the group's consolidation system, and map it to reporting codes. It is held separately from the parent's own trial balance and is used to tie out the group statements (FR-TAG-13).
 
 ### 7.4 Adjustments and finalisation
 
@@ -234,7 +236,7 @@ Two terms are used precisely. A **period of account** is the period the accounts
 
 ### 7.6 Imported accounts and the tagging workbench
 
-For accounts written outside the app. The finance team keeps authoring the document where it does today; the app turns the final document into valid iXBRL and proves it agrees with the ledger. Release 2 supports individual company accounts under UK-adopted IFRS, FRS 101 and FRS 102.
+For accounts written outside the app. The finance team keeps authoring the document where it does today; the app turns the final document into valid iXBRL and proves it agrees with the ledger. Release 2 supports individual company accounts under UK-adopted IFRS, FRS 101 and FRS 102, and a parent's accounts that include consolidated statements under UK-adopted IFRS or FRS 102.
 
 - **FR-TAG-1 (R2)** Import the accounts as a Word document and convert it to XHTML that preserves the layout, tables and pagination cues. Show the result beside the original so the user can confirm nothing was lost. **(Later)** Import from PDF.
 - **FR-TAG-2 (R2)** Detect the document's structure: the primary statements, each note, each table, the period each column represents, and the scale stated in headings (for example £000).
@@ -248,8 +250,10 @@ For accounts written outside the app. The finance team keeps authoring the docum
 - **FR-TAG-10 (R2)** Capture audit details where the accounts are audited: the audit firm, the senior statutory auditor, the date and type of the audit report. Tag them as the taxonomy requires.
 - **FR-TAG-11 (R2)** Tagging is reviewed and signed off by a second person, and every tag change is in the audit log.
 - **FR-TAG-12 (R2)** Use only concepts from the accepted taxonomy. UK filing does not allow company-specific extension concepts.
-- **FR-TAG-13 (R2)** The data model supports the taxonomy's group and company dimension from the start, so that consolidated accounts can be added later without rework.
+- **FR-TAG-13 (R2)** Consolidated accounts: in a document that contains both group and company statements, identify which statements, columns and notes are consolidated and which are the parent's own, and tag each with the taxonomy's group and company dimension. Tie the group statements to the consolidated trial balance (FR-TB-8) and the parent's own statements to the parent's trial balance.
 - **FR-TAG-14 (R2)** Keep, for every tagged figure that ties out, the link to the reporting codes and the calculation it agreed with. This link is what later allows the figure to be refreshed from the ledger (section 10.5).
+- **FR-TAG-15 (R2)** Reuse tags across companies: where several companies' accounts are built on the same template, apply one company's signed-off tags to the others by matching structure and labels, then run the tie-out and review for each company.
+- **FR-TAG-16 (R2)** Accept accounts already tagged in other software: upload the iXBRL file, validate it, read its key facts for the cross-document checks, and use it for filing in place of accounts tagged in the app.
 
 Drafting is not in release 2, but these later requirements shape its design:
 
@@ -273,9 +277,9 @@ Release 1 covers a small trading company. Release 2 extends the same computation
 - **FR-TAX-10 (R1)** For a long period of account, apportion trading profit between the two accounting periods on a time basis by default and compute capital allowances separately for each.
 - **FR-TAX-11 (R2)** Companies with investment business: management expenses, current and carried forward.
 - **FR-TAX-12 (R2)** The full set of income and loss streams: non-trading loan relationship deficits, property business losses, capital losses, and non-trading losses on intangible fixed assets, each with its own memorandum and its own rules for use.
-- **FR-TAX-13 (R2)** The restriction on carried-forward losses: apply the deductions allowance allocated to the company (an input, since the group allocates it) and the percentage restriction above it.
-- **FR-TAX-14 (R2)** Quarterly instalments: determine whether the company is large or very large for the period, including the exceptions; show the instalment schedule; record payments made; and carry payments into the CT600.
-- **FR-TAX-15 (R2)** Group relief: record a surrender by one company and the matching claim by another for overlapping periods; check within the tenant that every claim has an equal surrender and that no loss is surrendered twice; populate CT600C for both companies; hold the consent to surrender.
+- **FR-TAX-13 (R2)** The restriction on carried-forward losses: allocate the group's deductions allowance across its companies within the tenant, check the total against the allowance, and apply each company's share and the percentage restriction above it. The allocation is available as a report for the group's separate statement to HMRC.
+- **FR-TAX-14 (R2)** Quarterly instalments: determine whether the company is large or very large for the period, including the exceptions; show the instalment schedule; record payments made, including the company's share of payments under a group payment arrangement; and carry payments into the CT600.
+- **FR-TAX-15 (R2)** Group relief: a group worksheet shows every company's available losses and taxable profits for the period and lets the tax team allocate surrenders and claims. The app limits each to what the rules allow for overlapping periods, checks that every claim has an equal surrender and that no loss is used twice, populates CT600C for both companies, and holds the consents to surrender.
 - **FR-TAX-16 (R2)** Inputs from regimes handled elsewhere, entered with a supporting attachment: transfer pricing adjustments, and interest disallowed or reactivated under the corporate interest restriction.
 - **FR-TAX-17 (R2)** Tax accounting working papers: the current tax charge, a deferred tax schedule from recorded temporary differences and losses at the enacted rate, and the reconciliation of the tax charge to accounting profit at the standard rate. These support the tax note in the imported accounts.
 - **FR-TAX-18 (R2)** Capital allowances at scale: import additions and disposals in bulk and classify them by rule.
@@ -309,6 +313,7 @@ Validation runs on demand and automatically before review, approval and filing. 
 - **FR-VAL-6 (R1)** CT600 validity: the XML schema and the Schematron business rules from the RIM artefacts for the applicable form version.
 - **FR-VAL-7 (R1)** Companies House filing rules: the accounts validation rules in its technical interface specification, and the taxonomy being accepted by Companies House.
 - **FR-VAL-8 (R1)** Envelope validity: each complete gateway message validates against its envelope schema and size limits before sending.
+- **FR-VAL-9 (R2)** Run validation across all of a group's companies in one operation and summarise the findings by company.
 
 Live customer data must never be sent to a test service, so production validation is entirely local.
 
@@ -321,6 +326,7 @@ Live customer data must never be sent to a test service, so production validatio
 - **FR-APP-5 (R1)** An approved pack is locked. Unlocking returns it to Draft and voids the approval.
 - **FR-APP-6 (R1)** At filing the app recomputes the hashes and refuses to send if they differ from the approved ones.
 - **FR-APP-7 (R2)** An organisation can configure its sign-off chain per pack type, and who may approve for which companies.
+- **FR-APP-8 (R2)** An approver can review and approve packs for several companies in one session. Each pack is still approved and hashed individually.
 
 ### 7.12 Submission to HMRC
 
@@ -334,6 +340,7 @@ Live customer data must never be sent to a test service, so production validatio
 - **FR-SUB-8 (R1)** Allow only one in-flight submission per return. Never resubmit automatically after an ambiguous failure (section 8.5).
 - **FR-SUB-9 (R1)** Support HMRC's test environments and Test-in-Live mode through configuration, restricted to non-production data and to the operator's staff.
 - **FR-SUB-10 (R2)** Queue returns for several companies and file them in sequence, reporting each outcome separately. One failure does not stop the rest.
+- **FR-SUB-11 (R2)** For a parent with consolidated accounts, attach what HMRC requires: the parent's own statements in iXBRL, and the group statements either in the same tagged document or as a separate attachment, as HMRC's rules direct.
 
 ### 7.13 Submission to Companies House
 
@@ -345,6 +352,9 @@ Live customer data must never be sent to a test service, so production validatio
 - **FR-CH-6 (R1)** Record which approved accounts were filed with Companies House and which were sent to HMRC, and warn if the two differ in any figure.
 - **FR-CH-7 (R1)** File amended accounts as a replacement for a set already accepted.
 - **FR-CH-8 (Later)** Meet the identity verification requirements for presenters when Companies House brings them in.
+- **FR-CH-9 (R2)** File group accounts: a parent's accounts including its consolidated statements.
+- **FR-CH-10 (R2)** File package accounts: where a subsidiary relies on an exemption that requires it, deliver the parent's consolidated accounts and the required statements together with the subsidiary's own accounts. The app works out from the group structure and each company's exemptions which companies need a package, and reuses the parent's approved consolidated accounts for each.
+- **FR-CH-11 (R2)** Queue Companies House filings for many companies and report each outcome separately.
 
 ### 7.14 After submission
 
@@ -496,6 +506,7 @@ The Companies House technical interface specifications are authoritative, in par
 - **Presenter model.** Each customer holds its own presenter account (FR-CH-4). The app stores presenter and company authentication codes only under the rules for credentials in section 13.1.
 - **Testing.** Companies House issues separate test presenter credentials on request and reviews test submissions by hand. Developers have reported waits of several weeks for test credentials in 2026, so the request is made at the start of the project.
 - **Accepted content.** Which account types and taxonomies the gateway accepts, and its validation rules, are taken from the accounts specification and loaded into the validator (FR-VAL-7). Whether audited medium and large accounts are accepted today must be confirmed before release 2.
+- **Group and package accounts.** The accounts specification provides for package accounts, including audit-exempt subsidiary accounts and accounts relying on the group exemptions. How a parent's consolidated accounts are attached, and whether one tagged copy can serve many subsidiaries or must be sent with each, is to be established from the specification in phase 0.
 - **Shared engine.** HMRC and Companies House are two adapters behind one filing engine: common state machine, evidence store and worker, with gateway-specific message building, authentication and polling.
 
 ## 10. iXBRL: technical specification
@@ -523,7 +534,7 @@ The mapping in FR-TB-3 targets a canonical chart of **reporting codes**. Each re
 - the detailed profit and loss concept;
 - the default tax treatment (FR-TAX-1) and, where relevant, the computational taxonomy concept.
 
-The chart serves both routes. For generated accounts it determines presentation and tags. For imported accounts it supplies the trial balance totals that tagged figures are tied out against, and the concept each total is expected to carry, which is the strongest signal for tag proposals. From release 2 the chart covers the presentation of FRS 102, FRS 101 and IFRS accounts as well as the micro-entity formats.
+The chart serves both routes. For generated accounts it determines presentation and tags. For imported accounts it supplies the trial balance totals that tagged figures are tied out against, and the concept each total is expected to carry, which is the strongest signal for tag proposals. From release 2 the chart covers the presentation of FRS 102, FRS 101 and IFRS accounts as well as the micro-entity formats, including lines that exist only in consolidated statements, such as goodwill on consolidation and non-controlling interests.
 
 Templates define the facts in generated documents that do not come from account balances: totals and subtotals, notes, statutory statements, dates, names and the hidden categorical facts. A template is a structured definition (sections, lines, fact bindings and narrative blocks), rendered to XHTML for iXBRL and to PDF.
 
@@ -539,6 +550,7 @@ Every accounts document must contain the facts that HMRC's joint filing validati
 - Conversion must not alter any character of the content. A conversion check compares the text of the original and the converted document and blocks progress on any difference.
 - Tags are stored as data against stable positions in the document, not only inside the XHTML, so they can be reviewed, audited, carried to a revised draft and rolled forward.
 - Large-company accounts are commonly presented in thousands or millions. Scale is recorded per fact and drives the tolerance used in tie-outs.
+- A parent's document holds group and company statements side by side. Every fact records which of the two it belongs to, and the two sets are tied out against different trial balances (FR-TAG-13).
 
 ### 10.5 From tagging to drafting
 
@@ -568,9 +580,10 @@ Main entities and what they hold. Monetary amounts are stored as integer pence; 
 | User, RoleGrant | Identity; roles per company or group |
 | Company | Record in FR-ORG-2 |
 | OwnershipLink | Parent, subsidiary, percentage, dates |
+| ConsolidatedGroup | A parent's reporting group for a period: the parent, the companies consolidated, and its consolidated trial balance |
 | PeriodOfAccount | Dates, framework, accounts route, size assessment, reference-data versions selected |
 | AccountingPeriod | Corporation Tax period within a period of account |
-| TrialBalanceVersion, TrialBalanceLine | Each import, with source file and hash |
+| TrialBalanceVersion, TrialBalanceLine | Each import, for a company or for a consolidated group, with source file and hash |
 | AccountMapping, MappingRule | Account to reporting code; group-level rules |
 | Journal, JournalLine | Adjustments |
 | FixedAsset | Register entries |
@@ -666,7 +679,8 @@ A recommendation, not a constraint; the repository is empty and nothing depends 
 - Target availability 99.5% monthly in release 1 and 99.9% from release 2, with planned maintenance kept away from filing peaks (the end of December, March and September).
 - Recovery point objective 15 minutes; recovery time objective 4 hours; restores tested quarterly.
 - For a micro-entity pack: document generation within 10 seconds and full validation within 60 seconds.
-- For a large company: import of a 50,000-line trial balance within 60 seconds; conversion and tag proposals for a 200-page accounts document within 10 minutes; full validation within 5 minutes. All long operations run in the background with visible progress.
+- For a large company: import of a 50,000-line trial balance within 60 seconds; conversion and tag proposals for a 300-page annual report within 15 minutes; full validation within 5 minutes. All long operations run in the background with visible progress.
+- For a group: a tenant with at least 250 companies, the group dashboard loading within 3 seconds, and bulk operations progressing company by company without blocking other work.
 - Gateway outages and slow responses must not lose a filing or corrupt its state (section 8.5).
 
 ### 13.4 Usability and accessibility
@@ -734,18 +748,18 @@ Both registrations are the product owner's (decision D2). Both have lead times o
 
 ## 16. Testing and acceptance
 
-- **Golden cases.** A library of synthetic companies, each with a trial balance and expected accounts, computation, CT600 boxes and iXBRL facts, reviewed by a qualified accountant. Release 1 covers: profit and loss positions; each marginal-relief band; short and long periods; periods straddling 31 March and 1 April 2026; associated companies; each capital allowance type; loss carry-back and carry-forward; an overdrawn director's loan. Release 2 adds: a group with claims and surrenders of group relief; instalment-paying companies; restricted carried-forward losses; an investment company.
+- **Golden cases.** A library of synthetic companies, each with a trial balance and expected accounts, computation, CT600 boxes and iXBRL facts, reviewed by a qualified accountant. Release 1 covers: profit and loss positions; each marginal-relief band; short and long periods; periods straddling 31 March and 1 April 2026; associated companies; each capital allowance type; loss carry-back and carry-forward; an overdrawn director's loan. Release 2 adds: a group with claims and surrenders of group relief; instalment-paying companies; restricted carried-forward losses; an investment company; a parent with consolidated accounts; and a subsidiary that files a package with Companies House.
 - **Gateway samples.** Every HMRC valid XML sample passes local schema and Schematron validation, and the IRmark implementation reproduces each sample's IRmark exactly. Companies House sample submissions pass local validation.
 - **Property tests** for the invariants: statements cast; the balance sheet balances; displayed and tagged values are equal; generation is deterministic.
 - **XBRL conformance.** Every document passes the XBRL processor and the HMRC and Companies House rule sets, with deliberate-error cases proving that each rule fires.
-- **Workbench corpus (R2).** A set of real, published large-company accounts in Word form under IFRS, FRS 101 and FRS 102, with reference tagging. Measured on it: conversion fidelity (no text differences), the share of tag proposals that are correct, and the share of facts carried correctly on roll-forward and re-import. Targets are set after the phase 0 spike.
+- **Workbench corpus (R2).** A set of real, published large-company accounts in Word form under IFRS, FRS 101 and FRS 102, including consolidated accounts and sets of subsidiary accounts built on one template, with reference tagging. Measured on it: conversion fidelity (no text differences), the share of tag proposals that are correct, the share of facts carried correctly on roll-forward and re-import, and the share of tags reused correctly across companies on a shared template. Targets are set after the phase 0 spike.
 - **Protocol tests** against simulators of both gateways covering every state and failure in section 8.5, including lost acknowledgements, delayed Companies House rejections, and worker restarts mid-poll.
 - **Test services.** Every golden case is run through HMRC's External Test Service and the Companies House test gateway before each release.
 - **Security tests**, including a check that credentials never appear in logs, stored messages or API responses, and tenant-isolation tests.
 
 **Release 1 is accepted when** all applicable tests pass; HMRC recognition is granted and Companies House live access is in place; and real filings for at least three pilot micro-entity companies, prepared in parallel by a qualified accountant using established software, produce the same figures and are accepted by both bodies.
 
-**Release 2 is accepted when** all applicable tests pass; the design constraints in section 10.5 are met; and one pilot organisation with at least five UK companies completes a year end in the app in parallel with its existing process, with the same tax figures, an independent review of the tagging, and acceptance of every filing by both bodies.
+**Release 2 is accepted when** all applicable tests pass; the design constraints in section 10.5 are met; and one pilot group with at least twenty UK companies, including a parent that files consolidated accounts, completes a year end in the app in parallel with its existing process, with the same tax figures, an independent review of the tagging, and acceptance of every filing by both bodies.
 
 ## 17. Delivery phases
 
@@ -753,11 +767,11 @@ Both registrations are the product owner's (decision D2). Both have lead times o
 |---|---|
 | 0. Foundations | Both registrations under way and test credentials requested. Technical packs obtained. Spikes: an HMRC round trip built from a published sample with a correct IRmark; a Companies House test submission; the XBRL processor running with bundled taxonomies; Word-to-XHTML conversion tried on real large-company accounts. Domain model and reference-data framework in place. Regulatory positions in section 3 verified. |
 | 1. Directors | Release 1 as in section 4.1; HMRC recognition; pilot filings with both bodies. |
-| 2. Large organisations | Release 2 as in section 4.2, built in this order so each step is usable: group tenants, roles and single sign-on; large-company tax and group filing using accounts tagged elsewhere; the tagging workbench; Companies House filing of full accounts. |
+| 2. Large organisations | Release 2 as in section 4.2, built in this order so each step is usable: group tenants, roles, single sign-on and bulk operations; large-company tax and group filing with HMRC, using accounts tagged elsewhere (FR-TAG-16); the tagging workbench for individual company accounts, with tag reuse across companies; consolidated accounts; Companies House filing of full, group and package accounts. |
 | 3. Small companies | Release 3 as in section 4.3. |
 | 4. Breadth | Items in section 4.4 by demand, and Companies House presenter verification when it is brought in. |
 
-Release 2 is several times the size of release 1. The workbench and large-company tax are each comparable to release 1 on their own, and both need sustained input from qualified accountants and tax specialists.
+Release 2 is several times the size of release 1, and serving many-company groups and consolidated accounts makes it larger still. The workbench and large-company tax are each comparable to release 1 on their own, and both need sustained input from qualified accountants and tax specialists.
 
 Two fixed dates shape the plan. From 1 April 2028 every company must file accounts with software, which is the point at which large companies that file on paper today must have a solution in place, so release 2 needs to be live and proven well before then. Online filing of amended returns is expected to be mandatory from the same date.
 
@@ -771,6 +785,8 @@ Two fixed dates shape the plan. From 1 April 2028 every company must file accoun
 | Companies House software filing may not yet accept every large-company account type, IFRS accounts in particular | Confirm against the accounts specification in phase 0; if not accepted, release 2 files large-company accounts with HMRC only until it is |
 | Word conversion loses fidelity on complex accounts | Phase 0 spike on real documents; conversion check that blocks on any text difference; fall back to importing HTML exported by the authoring tool |
 | Release 2 is built in a way that makes drafting hard to add later | The constraints in section 10.5 are acceptance criteria for release 2 |
+| Tagging tens of subsidiaries' accounts one at a time is too slow to be usable | Tag reuse across companies on a shared template (FR-TAG-15); bulk operations; measured on the corpus |
+| What HMRC requires of a parent's group accounts, and how Companies House takes group and package accounts from software, is unclear from secondary sources | Establish both from the primary specifications in phase 0, before the consolidated work is designed in detail |
 | Tag proposals are not accurate enough to save time | Measure on the corpus; tie-out and prior-year tags carry most of the value even if label matching is weak; nothing is accepted without review |
 | Large-company tax is broad and errors are costly | Tight supported scope with the detector in FR-CT-6; qualified review of rules and golden cases; parallel-run pilot; contractual terms and professional indemnity cover appropriate to the customer base |
 | Local validation passes but a gateway rejects | Test-service runs for all golden cases; every divergence becomes a regression test; clear rejection handling |
@@ -784,11 +800,11 @@ Two fixed dates shape the plan. From 1 April 2028 every company must file accoun
 
 ### 18.2 Open questions
 
-1. **Scale of a large customer (A1).** A standalone large company, or groups with dozens of UK entities? This sets the size of release 2 and how much the group features matter.
-2. **Consolidated accounts.** Must parent companies with group statements be supported in release 2? Groups reporting under IFRS often expect it.
+1. **Consolidation (D8).** This draft tags consolidated accounts whose figures come from the group's own consolidation system. Is that right, or should the app also perform the consolidation from the companies' ledgers? The second is a much larger product.
+2. **Listed groups.** Are any intended customers listed? Their annual reports also need the Financial Conduct Authority's structured format, which is out of scope here.
 3. **Technology (section 12.2).** Is there an existing preference or team skill set that should override the recommendation?
 4. **Professional oversight.** Who provides the qualified accounting and tax review that sections 14 and 16 depend on?
-5. **Data sources.** Which bookkeeping and ERP systems do the intended customers use?
+5. **Data sources.** Which ERP and consolidation systems do the intended groups use, and which bookkeeping systems do directors use?
 
 ## 19. References
 
@@ -811,7 +827,9 @@ Primary sources to verify against:
 - Companies House — [Using software to file your company's information](https://www.gov.uk/guidance/using-software-to-file-your-companys-information)
 - Companies House — [Update to accounts filing from April 2028](https://www.gov.uk/government/news/companies-house-update-to-accounts-filing-from-april-2028)
 - Companies House — [XML gateway developer forum](https://xmlforum.companieshouse.gov.uk)
+- Companies House — [Filing your Companies House accounts](https://www.gov.uk/government/publications/filing-your-companies-house-accounts)
 - FRC — [Current taxonomy suites](https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/current-frc-taxonomy-suites/)
+- FRC — [XBRL tagging guide](https://www.frc.org.uk/documents/6561/XBRL_Tagging_Guide_-_FRC_Taxonomies_2024_On9jOuS.pdf) (includes how to distinguish group and company data)
 
 Secondary reporting used for section 3:
 
@@ -821,6 +839,7 @@ Secondary reporting used for section 3:
 - ICAEW — [Companies House presenter verification deadline changed](https://www.icaew.com/insights/viewpoints-on-the-news/2026/aug-2026/companies-house-presenter-verification-deadline-changed)
 - ICAEW — [HMRC consults on changes to company tax returns](https://www.icaew.com/insights/tax-news/2026/mar-2026/hmrc-consults-on-changes-to-company-tax-returns)
 - Accountancy Daily — [Budget 2026: delay to single XBRL corporation tax computations](https://www.accountancydaily.co/budget-2026-delay-single-xbrl-corporation-tax-computations)
+- IRIS — [How to generate an iXBRL report for group accounts](https://help-iris.co.uk/IRIS/ODL/iXBRL/HT/HT_generate_iXBRL_Report_for_Group_Consolidated_Accs.htm) (vendor help page; source for HMRC's treatment of group accounts)
 
 ## Glossary
 
@@ -829,6 +848,7 @@ Secondary reporting used for section 3:
 | Accounting period | The period one CT600 covers; at most 12 months |
 | Associated companies | Companies under common control; their number reduces the profit limits for tax rates and instalments |
 | Augmented profits | Taxable profits plus certain exempt dividends; used to test the rate and instalment limits |
+| Consolidated accounts | Group accounts that present a parent and its subsidiaries as a single entity |
 | CRN | Company registration number issued by Companies House |
 | CT600 | The Company Tax Return form |
 | DPL | Detailed profit and loss account: the full income and expense analysis, given to HMRC but not filed publicly |
@@ -838,6 +858,7 @@ Secondary reporting used for section 3:
 | IFRS | International Financial Reporting Standards, as adopted for use in the UK |
 | iXBRL | Inline XBRL: a human-readable XHTML document with machine-readable XBRL tags embedded |
 | IRmark | A digest of the submission body that identifies exactly what was filed with HMRC |
+| Package accounts | A Companies House filing in which a subsidiary's accounts are delivered together with its parent's consolidated accounts |
 | Period of account | The period the accounts cover |
 | Presenter | The person or organisation that delivers a document to Companies House |
 | RIM artefacts | HMRC's package of schema, business rules and samples for a form version |
