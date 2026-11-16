@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Status** | Draft 0.5, for review |
+| **Status** | Draft 0.6, for review |
 | **Date** | 16 November 2026 |
 | **Jurisdiction** | United Kingdom — HMRC Corporation Tax and Companies House |
-| **Changes since 0.4** | One decision recorded: no intended customers are listed, so the Financial Conduct Authority's structured reporting stays out of scope. |
+| **Changes since 0.5** | Technology recommendation changed: the interface is server-rendered HTML, with JavaScript only where the interaction needs it (section 12.2). |
 
 ## 1. Summary
 
@@ -613,7 +613,7 @@ Generated documents are reproducible: the same inputs and versions always produc
 
 ```mermaid
 flowchart LR
-    UI[Web client] --> API[Application API]
+    UI[Browser] --> API[Web application]
     IdP[Customer identity provider] --> API
     API --> DB[(PostgreSQL)]
     API --> Store[(Document store)]
@@ -630,8 +630,8 @@ flowchart LR
     File --> DB
 ```
 
-- **Web client** — the workflow, the tagging workbench, document viewers and dashboards.
-- **Application API** — domain logic, permissions and workflow state.
+- **Browser** — HTML pages for the workflow, document viewers and dashboards, and the tagging workbench component.
+- **Web application** — renders the pages and holds domain logic, permissions and workflow state.
 - **Conversion worker** — converts imported documents and produces tag proposals.
 - **Render worker** — produces documents deterministically from data and versioned templates.
 - **Validation worker** — runs the layers in section 7.10. Isolated because the XBRL processor is memory-hungry and slow to start.
@@ -646,13 +646,14 @@ A recommendation, not a constraint; the repository is empty and nothing depends 
 
 | Layer | Recommendation | Reason |
 |---|---|---|
-| Backend and workers | Python 3.12+ with FastAPI | Arelle is a Python library; `lxml` provides schema validation and XML canonicalisation; `decimal` is in the standard library |
+| Backend and workers | Python 3.12+ with a full-stack web framework such as Django | Arelle is a Python library; `lxml` provides schema validation and XML canonicalisation; `decimal` is in the standard library; a full-stack framework supplies sign-in, forms and HTML templating |
 | Database | PostgreSQL | Transactions, row-level security for tenant isolation, JSON for versioned reference data |
 | Job queue | PostgreSQL-backed queue initially | One fewer moving part; replace with a dedicated broker if volume demands |
 | iXBRL and PDF rendering | Structured templates rendered to XHTML; an HTML-to-PDF engine for the PDF | One source for both outputs |
 | Word conversion | To be chosen by a spike against real large-company accounts | Fidelity on complex tables is the deciding factor and cannot be judged on paper |
 | Schematron | An XSLT engine matching the query binding HMRC's Schematron uses | To be confirmed from the RIM artefacts; `lxml` supports XSLT 1.0 only |
-| Web client | TypeScript with React | Mainstream; strong typing for a form-heavy interface and the workbench |
+| Interface | Server-rendered HTML for almost every screen, with a small amount of JavaScript where it helps | The director workflow and most finance-team screens are forms, tables and document views. HTML pages handle these with less code, fewer dependencies and better accessibility by default than a JavaScript application |
+| Tagging workbench | A self-contained TypeScript component embedded in an HTML page | Selecting text in a document, searching the taxonomy and reviewing side by side need to run in the browser; plain HTML cannot do this. Very large mapping grids may need the same treatment |
 | Hosting | Containers in a UK cloud region, managed PostgreSQL, managed key service | Data residency and operational simplicity |
 
 ## 13. Non-functional requirements
@@ -802,7 +803,7 @@ Two fixed dates shape the plan. From 1 April 2028 every company must file accoun
 ### 18.2 Open questions
 
 1. **Consolidation (D8).** This draft tags consolidated accounts whose figures come from the group's own consolidation system. Is that right, or should the app also perform the consolidation from the companies' ledgers? The second is a much larger product.
-2. **Technology (section 12.2).** Is there an existing preference or team skill set that should override the recommendation?
+2. **Technology (section 12.2).** The recommendation is Python with a server-rendered HTML interface. Is there an existing preference or team skill set that should override it?
 3. **Professional oversight.** Who provides the qualified accounting and tax review that sections 14 and 16 depend on?
 4. **Data sources.** Which ERP and consolidation systems do the intended groups use, and which bookkeeping systems do directors use?
 
