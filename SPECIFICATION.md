@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Status** | Draft 0.6, for review |
+| **Status** | Draft 0.7, for review |
 | **Date** | 16 November 2026 |
 | **Jurisdiction** | United Kingdom — HMRC Corporation Tax and Companies House |
-| **Changes since 0.5** | Technology recommendation changed: the interface is server-rendered HTML, with JavaScript only where the interaction needs it (section 12.2). |
+| **Changes since 0.6** | Large-company accounts can be imported from Excel and HTML as well as Word (FR-TAG-1 and section 10.4). |
 
 ## 1. Summary
 
@@ -24,7 +24,7 @@ It serves two kinds of user: directors filing for their own small company, and t
 Accounts reach iXBRL by one of two routes, and the difference matters throughout the specification:
 
 - **Generated.** For micro-entities and small companies, the app renders the accounts from structured data in which every figure already carries its XBRL concept, period, unit and sign. Nothing is tagged after the fact, so a displayed figure and its tagged value cannot disagree. Tax computations are always produced this way, for every company.
-- **Imported and tagged.** A large company's accounts are a bespoke document agreed with its auditors. The app imports that document, proposes tags, and gives the finance team a workbench to review and complete them, with automatic checks that the tagged figures agree with the trial balance. The design keeps open a later step in which the app drafts these accounts itself (section 10.5).
+- **Imported and tagged.** A large company's accounts are a bespoke document agreed with its auditors. The app imports that document from Word, Excel or HTML, proposes tags, and gives the finance team a workbench to review and complete them, with automatic checks that the tagged figures agree with the trial balance. The design keeps open a later step in which the app drafts these accounts itself (section 10.5).
 
 ## 2. Decisions and assumptions
 
@@ -92,7 +92,7 @@ Positions below are as understood on 16 November 2026. They were compiled from s
 
 - Group tenants built for many companies: ownership relationships, entity-level permissions, single sign-on, bulk operations across companies, and a group dashboard.
 - Trial balances at ERP scale; lead schedules and working papers; intercompany balance agreement.
-- Imported accounts with the tagging workbench: individual company accounts under FRS 102, FRS 101 or UK-adopted IFRS, and a parent's accounts that include consolidated group statements under FRS 102 or UK-adopted IFRS. Tags are reused across companies whose accounts share a template.
+- Accounts imported from Word, Excel or HTML and tagged in the workbench: individual company accounts under FRS 102, FRS 101 or UK-adopted IFRS, and a parent's accounts that include consolidated group statements under FRS 102 or UK-adopted IFRS. Tags are reused across companies whose accounts share a template.
 - Large-company tax: associated companies, quarterly instalments, group relief with CT600C, the restriction on carried-forward losses, investment and holding companies, and the wider set of income and loss types in section 7.7.
 - A detailed profit and loss account generated from the trial balance and attached to the computations.
 - Companies House filing of full accounts, group accounts, and the packages in which a subsidiary files its parent's consolidated accounts with its own.
@@ -239,8 +239,8 @@ Two terms are used precisely. A **period of account** is the period the accounts
 
 For accounts written outside the app. The finance team keeps authoring the document where it does today; the app turns the final document into valid iXBRL and proves it agrees with the ledger. Release 2 supports individual company accounts under UK-adopted IFRS, FRS 101 and FRS 102, and a parent's accounts that include consolidated statements under UK-adopted IFRS or FRS 102.
 
-- **FR-TAG-1 (R2)** Import the accounts as a Word document and convert it to XHTML that preserves the layout, tables and pagination cues. Show the result beside the original so the user can confirm nothing was lost. **(Later)** Import from PDF.
-- **FR-TAG-2 (R2)** Detect the document's structure: the primary statements, each note, each table, the period each column represents, and the scale stated in headings (for example £000).
+- **FR-TAG-1 (R2)** Import the accounts from a Word document, an Excel workbook or an HTML file, keeping the layout, tables and pagination cues. For a workbook, the user chooses which sheets and print areas make up the accounts, and their order. Show the result beside the original so the user can confirm nothing was lost. The rules for each format are in section 10.4. **(Later)** Import from PDF.
+- **FR-TAG-2 (R2)** Detect the document's structure: the primary statements, each note, each table, the period each column represents, and the scale stated in headings (for example £000). In a workbook, use the cell grid, number formats and formulas as evidence: a cell that sums other cells is a total of them.
 - **FR-TAG-3 (R2)** Propose a tag for every figure and every required narrative item, using label matching against the taxonomy, the taxonomy's own structure, the company's tags from the prior year, and agreement with trial balance totals. Each proposal shows a confidence level. The user can accept proposals singly or in bulk; no tag is final until accepted.
 - **FR-TAG-4 (R2)** Tag manually: select a figure or passage, search or browse the taxonomy for a concept, and set the period, dimension members, unit, scale and sign. The app derives defaults from the column, the heading and any brackets.
 - **FR-TAG-5 (R2)** Completeness review: list every number in the primary statements and notes that has no tag. Each must be tagged or marked as having no suitable concept, with a reason. List the mandatory facts (section 10.3) and whether each is present.
@@ -549,6 +549,10 @@ Every accounts document must contain the facts that HMRC's joint filing validati
 
 - The converted document, held in the document model described in section 10.5, is the document of record, and the filed XHTML is rendered from it. Tags wrap the text as displayed; the tagged value is derived from the displayed text through the fact's format, scale and sign, so the two cannot differ.
 - Conversion must not alter any character of the content. A conversion check compares the text of the original and the converted document and blocks progress on any difference.
+- **Word** is the expected format for most large-company accounts.
+- **Excel.** Only `.xlsx` workbooks are accepted; macro-enabled and legacy formats are refused with advice to re-save. The imported text of a cell is what is displayed under its number format, as a reader of the printed page would see it, not the stored unrounded value. Formulas are not recalculated: the saved results are used, and the formulas themselves are read only as evidence of which cells are totals. Number formats supply the scale, bracketed negatives and dashes for nil. Hidden sheets, rows and columns are left out and listed for the user to confirm. Values that come from links to other workbooks are flagged.
+- **HTML.** Scripts and references to external files are removed and styles are embedded, so that the result meets the document rules in section 10.1. The visible text must be unchanged.
+- In release 2 one set of accounts comes from one source file. Combining a Word document with figures held in a separate workbook belongs to the drafting path (section 10.5).
 - Tags are stored as data against stable positions in the document, not only inside the XHTML, so they can be reviewed, audited, carried to a revised draft and rolled forward.
 - Large-company accounts are commonly presented in thousands or millions. Scale is recorded per fact and drives the tolerance used in tie-outs.
 - A parent's document holds group and company statements side by side. Every fact records which of the two it belongs to, and the two sets are tied out against different trial balances (FR-TAG-13).
@@ -557,7 +561,7 @@ Every accounts document must contain the facts that HMRC's joint filing validati
 
 Release 2 imports and tags accounts that are written elsewhere (decision D6). Drafting them in the app is a later expansion, in three stages that each stand alone: linked figures, generated statements and notes, then authoring (FR-DRF-1 to FR-DRF-3). Release 2 must be built so that these stages add to it and replace nothing. The constraints are:
 
-- **One document model.** Imported and generated documents are held in the same structured form: sections, tables, cells, narrative blocks and facts. Conversion from Word populates that model; XHTML and PDF are renderings of it. A document can therefore mix imported content with generated content.
+- **One document model.** Imported and generated documents are held in the same structured form: sections, tables, cells, narrative blocks and facts. Import from Word, Excel or HTML populates that model; XHTML and PDF are renderings of it. A document can therefore mix imported content with generated content.
 - **Facts know their source.** A fact is either static text from the import or a binding to data. Release 2 creates only static facts but records the link found by the tie-out (FR-TAG-14). Turning a linked static fact into a live binding is then a change of state, not a new mechanism.
 - **The canonical chart covers large-company presentation.** Reporting codes carry statement lines and concepts for FRS 102, FRS 101 and IFRS from release 2, because the tie-out needs them. Generated statements later use the same definitions.
 - **Narrative is stored as reusable blocks**, identified and versioned, so that accounting policies and other standing text carry from year to year.
@@ -618,7 +622,7 @@ flowchart LR
     API --> DB[(PostgreSQL)]
     API --> Store[(Document store)]
     API --> Queue[Job queue]
-    Queue --> Convert[Conversion worker: Word to XHTML, tag proposals]
+    Queue --> Convert[Conversion worker: document import, tag proposals]
     Queue --> Render[Render worker: iXBRL, PDF, CT600 XML]
     Queue --> Validate[Validation worker: XBRL processor, schema, Schematron, rules]
     Queue --> File[Filing worker]
@@ -650,7 +654,7 @@ A recommendation, not a constraint; the repository is empty and nothing depends 
 | Database | PostgreSQL | Transactions, row-level security for tenant isolation, JSON for versioned reference data |
 | Job queue | PostgreSQL-backed queue initially | One fewer moving part; replace with a dedicated broker if volume demands |
 | iXBRL and PDF rendering | Structured templates rendered to XHTML; an HTML-to-PDF engine for the PDF | One source for both outputs |
-| Word conversion | To be chosen by a spike against real large-company accounts | Fidelity on complex tables is the deciding factor and cannot be judged on paper |
+| Document import | Libraries for reading Word and Excel files, to be chosen by a spike against real large-company accounts | Fidelity on complex tables is the deciding factor and cannot be judged on paper |
 | Schematron | An XSLT engine matching the query binding HMRC's Schematron uses | To be confirmed from the RIM artefacts; `lxml` supports XSLT 1.0 only |
 | Interface | Server-rendered HTML for almost every screen, with a small amount of JavaScript where it helps | The director workflow and most finance-team screens are forms, tables and document views. HTML pages handle these with less code, fewer dependencies and better accessibility by default than a JavaScript application |
 | Tagging workbench | A self-contained TypeScript component embedded in an HTML page | Selecting text in a document, searching the taxonomy and reviewing side by side need to run in the browser; plain HTML cannot do this. Very large mapping grids may need the same treatment |
@@ -754,7 +758,7 @@ Both registrations are the product owner's (decision D2). Both have lead times o
 - **Gateway samples.** Every HMRC valid XML sample passes local schema and Schematron validation, and the IRmark implementation reproduces each sample's IRmark exactly. Companies House sample submissions pass local validation.
 - **Property tests** for the invariants: statements cast; the balance sheet balances; displayed and tagged values are equal; generation is deterministic.
 - **XBRL conformance.** Every document passes the XBRL processor and the HMRC and Companies House rule sets, with deliberate-error cases proving that each rule fires.
-- **Workbench corpus (R2).** A set of real, published large-company accounts in Word form under IFRS, FRS 101 and FRS 102, including consolidated accounts and sets of subsidiary accounts built on one template, with reference tagging. Measured on it: conversion fidelity (no text differences), the share of tag proposals that are correct, the share of facts carried correctly on roll-forward and re-import, and the share of tags reused correctly across companies on a shared template. Targets are set after the phase 0 spike.
+- **Workbench corpus (R2).** A set of real large-company accounts in their source Word, Excel and HTML form, obtained from pilot customers, under IFRS, FRS 101 and FRS 102, including consolidated accounts and sets of subsidiary accounts built on one template, with reference tagging. Measured on it: conversion fidelity (no text differences), the share of tag proposals that are correct, the share of facts carried correctly on roll-forward and re-import, and the share of tags reused correctly across companies on a shared template. Targets are set after the phase 0 spike.
 - **Protocol tests** against simulators of both gateways covering every state and failure in section 8.5, including lost acknowledgements, delayed Companies House rejections, and worker restarts mid-poll.
 - **Test services.** Every golden case is run through HMRC's External Test Service and the Companies House test gateway before each release.
 - **Security tests**, including a check that credentials never appear in logs, stored messages or API responses, and tenant-isolation tests.
@@ -767,7 +771,7 @@ Both registrations are the product owner's (decision D2). Both have lead times o
 
 | Phase | Outcome |
 |---|---|
-| 0. Foundations | Both registrations under way and test credentials requested. Technical packs obtained. Spikes: an HMRC round trip built from a published sample with a correct IRmark; a Companies House test submission; the XBRL processor running with bundled taxonomies; Word-to-XHTML conversion tried on real large-company accounts. Domain model and reference-data framework in place. Regulatory positions in section 3 verified. |
+| 0. Foundations | Both registrations under way and test credentials requested. Technical packs obtained. Spikes: an HMRC round trip built from a published sample with a correct IRmark; a Companies House test submission; the XBRL processor running with bundled taxonomies; import of real large-company accounts from Word and Excel. Domain model and reference-data framework in place. Regulatory positions in section 3 verified. |
 | 1. Directors | Release 1 as in section 4.1; HMRC recognition; pilot filings with both bodies. |
 | 2. Large organisations | Release 2 as in section 4.2, built in this order so each step is usable: group tenants, roles, single sign-on and bulk operations; large-company tax and group filing with HMRC, using accounts tagged elsewhere (FR-TAG-16); the tagging workbench for individual company accounts, with tag reuse across companies; consolidated accounts; Companies House filing of full, group and package accounts. |
 | 3. Small companies | Release 3 as in section 4.3. |
@@ -785,7 +789,8 @@ Two fixed dates shape the plan. From 1 April 2028 every company must file accoun
 |---|---|
 | Recognition or test access takes longer than development; Companies House test credentials in particular have been slow in 2026 | Start both registrations immediately; build against simulators meanwhile |
 | Companies House software filing may not yet accept every large-company account type, IFRS accounts in particular | Confirm against the accounts specification in phase 0; if not accepted, release 2 files large-company accounts with HMRC only until it is |
-| Word conversion loses fidelity on complex accounts | Phase 0 spike on real documents; conversion check that blocks on any text difference; fall back to importing HTML exported by the authoring tool |
+| Import loses fidelity on complex accounts | Phase 0 spike on real documents; conversion check that blocks on any text difference; three import formats, so a document that converts badly from one can be brought in through another |
+| Supporting three import formats multiplies the conversion work | All formats feed one document model, so only the importer differs; build first the format the pilot customers actually use |
 | Release 2 is built in a way that makes drafting hard to add later | The constraints in section 10.5 are acceptance criteria for release 2 |
 | Tagging tens of subsidiaries' accounts one at a time is too slow to be usable | Tag reuse across companies on a shared template (FR-TAG-15); bulk operations; measured on the corpus |
 | What HMRC requires of a parent's group accounts, and how Companies House takes group and package accounts from software, is unclear from secondary sources | Establish both from the primary specifications in phase 0, before the consolidated work is designed in detail |
@@ -806,6 +811,7 @@ Two fixed dates shape the plan. From 1 April 2028 every company must file accoun
 2. **Technology (section 12.2).** The recommendation is Python with a server-rendered HTML interface. Is there an existing preference or team skill set that should override it?
 3. **Professional oversight.** Who provides the qualified accounting and tax review that sections 14 and 16 depend on?
 4. **Data sources.** Which ERP and consolidation systems do the intended groups use, and which bookkeeping systems do directors use?
+5. **Source format of accounts.** Do the intended groups write their accounts in Word, in Excel, or with figures in Excel linked into a Word document? This decides which importer is built first.
 
 ## 19. References
 
