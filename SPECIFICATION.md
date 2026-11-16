@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Status** | Draft 0.4, for review |
+| **Status** | Draft 0.5, for review |
 | **Date** | 16 November 2026 |
 | **Jurisdiction** | United Kingdom — HMRC Corporation Tax and Companies House |
-| **Changes since 0.3** | Two decisions recorded: large customers are groups with many UK companies, and consolidated accounts are supported in release 2. Group-scale working, consolidated tagging and Companies House package accounts are added to release 2. |
+| **Changes since 0.4** | One decision recorded: no intended customers are listed, so the Financial Conduct Authority's structured reporting stays out of scope. |
 
 ## 1. Summary
 
@@ -40,6 +40,7 @@ Accounts reach iXBRL by one of two routes, and the difference matters throughout
 | D6 | **Large-company accounts are imported and tagged**, not drafted in the app. The design must allow drafting to be added later without rework (section 10.5). |
 | D7 | **Large customers are groups with many UK companies.** Working across the whole group — bulk operations, shared mappings, tags reused between companies, a group dashboard — is core to release 2. |
 | D8 | **Consolidated accounts are supported in release 2**: a parent's accounts that include group statements can be tagged and filed. This draft assumes the app does not perform the consolidation; the consolidated figures come from the group's own consolidation system (section 4.5). |
+| D9 | **No intended customers are listed.** The Financial Conduct Authority's structured reporting for listed companies is therefore out of scope, and the app does not need controls specific to price-sensitive information. |
 
 ### 2.2 Assumptions to confirm
 
@@ -114,7 +115,7 @@ Positions below are as understood on 16 November 2026. They were compiled from s
 
 - Bookkeeping, bank feeds, VAT, payroll and self-assessment.
 - Consolidation itself: producing group figures from the companies' ledgers, with eliminations and currency translation. The app takes the consolidated trial balance from the group's consolidation system and ties the tagged group statements to it.
-- The Financial Conduct Authority's structured reporting for listed companies' annual financial reports, which is a separate filing with its own taxonomy. Consolidated accounts tagged in the app are for Companies House and HMRC.
+- The Financial Conduct Authority's structured reporting for listed companies' annual financial reports, which is a separate filing with its own taxonomy (decision D9). Consolidated accounts tagged in the app are for Companies House and HMRC.
 - Sector and special regimes: banking, insurance, oil and gas ring-fence trades, tonnage tax, real estate investment trusts, residential property developer tax, creative industry reliefs.
 - International regimes: controlled foreign companies, the multinational top-up tax, diverted profits tax, non-UK-resident companies, double taxation relief.
 - Filing the corporate interest restriction return and the group allowance allocation statement, which go to HMRC separately. The app takes the interest restriction results as inputs and produces the allocation figures for the statement (FR-TAX-13).
@@ -662,7 +663,7 @@ A recommendation, not a constraint; the repository is empty and nothing depends 
 - Multi-factor authentication for every user who does not sign in through their organisation's identity provider.
 - Tenant isolation enforced in the database as well as in application code.
 - **Gateway credentials** — Government Gateway user IDs and passwords, Companies House presenter codes and company authentication codes — are never logged, never written to the stored copy of a message, and never returned by any API. By default they exist only in memory in the filing worker for one request. Where a tenant opts to store them, they are encrypted with a per-tenant key held in a managed key service and decrypted only inside the filing worker.
-- Unpublished accounts of large companies are commercially sensitive and may be price-sensitive for listed groups. Access is by role and company, every view and export is logged, and operator staff have no standing access to tenant data.
+- Unpublished accounts of large companies are commercially sensitive. Access is by role and company, every view and export is logged, and operator staff have no standing access to tenant data.
 - Personal data is limited to what filing requires. A data processing agreement and privacy notice are required before launch.
 - Bank details captured for repayments are encrypted at field level.
 - Independent penetration test before live filing, and annually; dependency and container scanning in continuous integration.
@@ -801,10 +802,9 @@ Two fixed dates shape the plan. From 1 April 2028 every company must file accoun
 ### 18.2 Open questions
 
 1. **Consolidation (D8).** This draft tags consolidated accounts whose figures come from the group's own consolidation system. Is that right, or should the app also perform the consolidation from the companies' ledgers? The second is a much larger product.
-2. **Listed groups.** Are any intended customers listed? Their annual reports also need the Financial Conduct Authority's structured format, which is out of scope here.
-3. **Technology (section 12.2).** Is there an existing preference or team skill set that should override the recommendation?
-4. **Professional oversight.** Who provides the qualified accounting and tax review that sections 14 and 16 depend on?
-5. **Data sources.** Which ERP and consolidation systems do the intended groups use, and which bookkeeping systems do directors use?
+2. **Technology (section 12.2).** Is there an existing preference or team skill set that should override the recommendation?
+3. **Professional oversight.** Who provides the qualified accounting and tax review that sections 14 and 16 depend on?
+4. **Data sources.** Which ERP and consolidation systems do the intended groups use, and which bookkeeping systems do directors use?
 
 ## 19. References
 
